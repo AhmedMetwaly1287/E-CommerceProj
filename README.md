@@ -19,3 +19,5 @@ Features yet to be added:
 3. Add a cart page
 4. User the new details to add an order now option in every product page and insert it into cart page.
 5. Add a payment on delivery option.
+
+   Project was built using native PHP, MySQL, Javascript, HTML, CSS, Bootstrap5.
