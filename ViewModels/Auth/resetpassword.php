@@ -5,35 +5,32 @@ require_once '../../Controllers/AuthController.php';
 $DB = DBController::getInstance();
 $user = new User;
 $auth = new AuthController;
-if(isset($_POST['password'])){
-  if(!empty($_POST['password'])){
-    if(session_start()){
+if (isset($_POST['password'])) {
+  if (!empty($_POST['password'])) {
+    if (session_start()) {
       $user->email = $_SESSION['email'];
-      if(strlen($_POST['password'])<6){
-        $errMsg = 'The new password cannot be less than 6 characters';
-      }
-      else{
-        if($DB->OpenCon()){
+      if (preg_match('/[^A-Za-z0-9]/', $_POST['password'])) {
+        $alertMsg = 'Password must only contain letters and numbers!';
+      } else {
+        if ($DB->OpenCon()) {
           $user->password = $_POST['password'];
-          $hashedpassword=$auth->Encrypt($user);
-        $stmt = "update user set password = '{$hashedpassword}' where email = '{$user->email}'";
-        $DB->Update($stmt);
-        $DB->CloseCon();
-        session_destroy();
-        header("location:login.php");
-        exit();
+          $hashedpassword = $auth->Encrypt($user);
+          $user->password = $hashedpassword;
+          $auth->UpdatePassword($user);
+          $DB->CloseCon();
+          session_destroy();
+          header("location:login.php");
+          exit();
         }
       }
     }
 
-  }
-  else{
+  } else {
     $errMsg = "Fill all fields";
   }
 }
 
 ?>
-
 <!DOCTYPE html>
 
 <html
