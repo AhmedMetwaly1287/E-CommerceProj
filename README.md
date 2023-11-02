@@ -21,3 +21,11 @@ Features yet to be added:
 5. Add a payment on delivery option.
 
    Project was built using native PHP, MySQL, Javascript, HTML, CSS, Bootstrap5.
+
+
+
+UPDATE V0.1:
+
+-Completely refactored the register page with improved form validation
+-Adjusted some check conditions across multiple pages
+-Added a couple of new functions in the AuthController to help with code encapsulation
