@@ -4,61 +4,50 @@ require_once '../../Controllers/UserController.php';
 require_once '../../Controllers/AuthController.php';
 require_once '../../Variables/user.php';
 
-$DB = DBController::getInstance(); 
+$DB = DBController::getInstance();
 $user = new User;
 $auth = new AuthController;
-$controller = new UserController;
+$userCon = new UserController;
 // $errMsg='';
-if(isset($_POST['email']) && isset($_POST['password']) && isset($_POST['fname']) && isset($_POST['lname']))
-{
-  if(!empty($_POST['email']) && !empty($_POST['password']) && !empty($_POST['fname']) && !empty($_POST['lname']))
-  {
-    $user->email = $_POST['email'];
-    $user->password = $_POST['password'];
-    $options = ['cost' => 12];
-    $hashedpassword=$auth->Encrypt($user);
+
+if (!empty($_POST['email']) && !empty($_POST['password']) && !empty($_POST['fname']) && !empty($_POST['lname'])) {
+
+  $DB->OpenCon();
+  $user->email = $_POST['email'];
+  $user->password = $_POST['password'];
+  $options = ['cost' => 12];
+  $hashedpassword = password_hash($user->password, PASSWORD_BCRYPT, $options);
+
+  $user->fname = $_POST['fname'];
+  $user->lname = $_POST['lname'];
+
+
+
+  if (!$auth->validateEmail($user)) {
+    $alertMsg = 'Email already exists!';
+  } elseif (preg_match('/[^A-Za-z0-9]/', $user->password)) {
+    $alertMsg = 'Password must only contain letters and numbers!';
+  } elseif (!filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+    $alertMsg = 'Insert a valid e-mail address';
+  } elseif (!ctype_alpha($user->fname)) {
+    $alertMsg = 'First name should only contain letters!';
+  } elseif (!ctype_alpha($user->lname)) {
+    $alertMsg = 'Last name should only contain letters!';
+  } else {
     $user->password = $hashedpassword;
-    $user->fname = $_POST['fname'];
-    $user->lname = $_POST['lname'];
-  
-    
-    
-  
-    $DB->openCon();
-
-    $stmt= "select email from user where email = '{$user->email}'";
-    $result = $DB->Select($stmt);
-
-   
-    $DB->closeCon();
-
-    if(count($result)>0){
-      $errMsg= 'Email already exists, <a href="login.php">login here!</a>';
+    if ($userCon->addUser($user)) {
+      $alertMsg = 'Registration successful!';
+      // session_start();
+      // $userID = $userCon->getIDByEmail($user);
+      // foreach ($userID as $userInfo)
+      //   $_SESSION['uID'] = $userInfo['id'];
+      // header('location: ShowData.php?id=' . $_SESSION['uID']);
+    } else {
+      $alertMsg = 'Email already exists!';
     }
-    else if (strlen($_POST['password'])<6){
-      $errMsg='Password must contain atleast 6 characters.';
-    }
-    else if (strpos($user->email, '@') !== false){
-      if($controller->addUser($user)){
-        session_start();
-        $_SESSION['ID']=$user->id;
-        $_SESSION['email']=$user->email;
-        $_SESSION['password']=$user->password;
-        $_SESSION['roleID']=1;
-        header("location:../ClientSide/index.php");
-        return true;
-      }
-    }
-    else{
-      $errMsg = 'Please enter a valid email.';
-    }
-
-  }
-  else{
-    $errMsg= 'Please fill all fields';
+    $DB->CloseCon();
   }
 }
-
 ?>
 
 <!DOCTYPE html>
